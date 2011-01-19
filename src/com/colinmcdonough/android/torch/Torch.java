@@ -31,7 +31,7 @@ import android.view.View;
 /*
  * Torch is an LED flashlight.
  */
-public class Torch extends Activity {
+public class Torch extends Activity implements Eula.OnEulaAgreedTo {
 
   private static final String TAG = Torch.class.getSimpleName();
 
@@ -44,6 +44,7 @@ public class Torch extends Activity {
   private Camera mCamera;
   private boolean lightOn;
   private boolean previewOn;
+  private boolean eulaAgreed;
   private View button;
 
   private WakeLock wakeLock;
@@ -70,6 +71,10 @@ public class Torch extends Activity {
   }
 
   private void turnLightOn() {
+    if (!eulaAgreed) {
+      return;
+    }
+    
     if (mCamera == null) {
       return;
     }
@@ -184,6 +189,9 @@ public class Torch extends Activity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    if (Eula.show(this)) {
+      eulaAgreed = true;
+    }
     setContentView(R.layout.main);
     button = findViewById(R.id.button);
     Log.i(TAG, "onCreate");
@@ -236,5 +244,13 @@ public class Torch extends Activity {
       mCamera.release();
     }
     Log.i(TAG, "onDestroy");
+  }
+
+  /** {@InheritDoc} **/
+  @Override
+  public void onEulaAgreedTo() {
+    Log.d(TAG, "onEulaAgreedTo");
+    eulaAgreed = true;
+    turnLightOn();
   }
 }
