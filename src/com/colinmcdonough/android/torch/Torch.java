@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Colin McDonough
+ * Copyright 2011 Colin McDonough
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 /*
  * Torch is an LED flashlight.
@@ -74,29 +75,26 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
     if (!eulaAgreed) {
       return;
     }
-    
     if (mCamera == null) {
+      Toast.makeText(this, "Camera not found", Toast.LENGTH_LONG);
+      // Use the screen as a flashlight (next best thing)
+      button.setBackgroundColor(COLOR_WHITE);
       return;
     }
     lightOn = true;
-
     Parameters parameters = mCamera.getParameters();
-
     if (parameters == null) {
       // Use the screen as a flashlight (next best thing)
       button.setBackgroundColor(COLOR_WHITE);
       return;
     }
-
     List<String> flashModes = parameters.getSupportedFlashModes();
-
     // Check if camera flash exists
     if (flashModes == null) {
       // Use the screen as a flashlight (next best thing)
       button.setBackgroundColor(COLOR_WHITE);
       return;
     }
-
     String flashMode = parameters.getFlashMode();
     Log.i(TAG, "Flash mode: " + flashMode);
     Log.i(TAG, "Flash modes: " + flashModes);
@@ -108,46 +106,44 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
         button.setBackgroundColor(COLOR_LIGHT);
         startWakeLock();
       } else {
+        Toast.makeText(this, "Flash mode (torch) not supported",
+            Toast.LENGTH_LONG);
+        // Use the screen as a flashlight (next best thing)
+        button.setBackgroundColor(COLOR_WHITE);
         Log.e(TAG, "FLASH_MODE_TORCH not supported");
       }
     }
   }
 
   private void turnLightOff() {
-    if (mCamera == null) {
-      return;
-    }
-    lightOn = false;
-
-    Parameters parameters = mCamera.getParameters();
-    
-    if (parameters == null) {
+    if (lightOn) {
       // set the background to dark
       button.setBackgroundColor(COLOR_DARK);
-      return;
-    }
-    
-    List<String> flashModes = parameters.getSupportedFlashModes();
-    String flashMode = parameters.getFlashMode();
-
-    // Check if camera flash exists
-    if (flashModes == null) {
-      // set the background to dark
-      button.setBackgroundColor(COLOR_DARK);
-      return;
-    }
-
-    Log.i(TAG, "Flash mode: " + flashMode);
-    Log.i(TAG, "Flash modes: " + flashModes);
-    if (!Parameters.FLASH_MODE_OFF.equals(flashMode)) {
-      // Turn off the flash
-      if (flashModes.contains(Parameters.FLASH_MODE_OFF)) {
-        parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
-        mCamera.setParameters(parameters);
-        button.setBackgroundColor(COLOR_DARK);
-        stopWakeLock();
-      } else {
-        Log.e(TAG, "FLASH_MODE_OFF not supported");
+      lightOn = false;
+      if (mCamera == null) {
+        return;
+      }
+      Parameters parameters = mCamera.getParameters();
+      if (parameters == null) {
+        return;
+      }
+      List<String> flashModes = parameters.getSupportedFlashModes();
+      String flashMode = parameters.getFlashMode();
+      // Check if camera flash exists
+      if (flashModes == null) {
+        return;
+      }
+      Log.i(TAG, "Flash mode: " + flashMode);
+      Log.i(TAG, "Flash modes: " + flashModes);
+      if (!Parameters.FLASH_MODE_OFF.equals(flashMode)) {
+        // Turn off the flash
+        if (flashModes.contains(Parameters.FLASH_MODE_OFF)) {
+          parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
+          mCamera.setParameters(parameters);
+          stopWakeLock();
+        } else {
+          Log.e(TAG, "FLASH_MODE_OFF not supported");
+        }
       }
     }
   }
