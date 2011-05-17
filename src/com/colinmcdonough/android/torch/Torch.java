@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -49,6 +50,17 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
   private View button;
 
   private WakeLock wakeLock;
+  
+  private static Torch torch;
+  
+  public Torch() {
+    super();
+    torch = this;
+  }
+  
+  public static Torch getTorch() {
+    return torch;
+  }
 
   private void getCamera() {
     if (mCamera == null) {
@@ -64,6 +76,10 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
    * Called by the view (see main.xml)
    */
   public void toggleLight(View view) {
+    toggleLight();
+  }
+  
+  private void toggleLight() {
     if (lightOn) {
       turnLightOff();
     } else {
@@ -205,12 +221,12 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
     Log.i(TAG, "onStart");
     getCamera();
     startPreview();
-    turnLightOn();
   }
 
   @Override
   public void onResume() {
     super.onResume();
+    turnLightOn();
     Log.i(TAG, "onResume");
   }
 
@@ -227,7 +243,8 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
       stopPreview();
       mCamera.release();
       mCamera = null;
-    }
+    };
+    torch = null;
     Log.i(TAG, "onStop");
   }
 
@@ -248,5 +265,15 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
     Log.d(TAG, "onEulaAgreedTo");
     eulaAgreed = true;
     turnLightOn();
+  }
+  
+  @Override
+  public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+    // When the search button is long pressed, quit
+    if (keyCode == KeyEvent.KEYCODE_SEARCH) {
+      finish();
+      return true;
+    }
+    return false;
   }
 }
