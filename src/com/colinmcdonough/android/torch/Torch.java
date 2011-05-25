@@ -239,6 +239,7 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
   @Override
   public void onPause() {
     super.onPause();
+    turnLightOff();
     Log.i(TAG, "onPause");
   }
 
