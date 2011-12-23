@@ -16,6 +16,7 @@
 
 package com.colinmcdonough.android.torch;
 
+import java.io.IOException;
 import java.util.List;
 
 import android.app.Activity;
@@ -27,6 +28,8 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -34,7 +37,7 @@ import android.widget.Toast;
 /*
  * Torch is an LED flashlight.
  */
-public class Torch extends Activity implements Eula.OnEulaAgreedTo {
+public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolder.Callback {
 
   private static final String TAG = Torch.class.getSimpleName();
 
@@ -49,16 +52,18 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
   private boolean previewOn;
   private boolean eulaAgreed;
   private View button;
+  private SurfaceView surfaceView;
+  private SurfaceHolder surfaceHolder;
 
   private WakeLock wakeLock;
-  
+
   private static Torch torch;
-  
+
   public Torch() {
     super();
     torch = this;
   }
-  
+
   public static Torch getTorch() {
     return torch;
   }
@@ -79,7 +84,7 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
   public void toggleLight(View view) {
     toggleLight();
   }
-  
+
   private void toggleLight() {
     if (lightOn) {
       turnLightOff();
@@ -207,6 +212,10 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
     }
     setContentView(R.layout.main);
     button = findViewById(R.id.button);
+    surfaceView = (SurfaceView) this.findViewById(R.id.surfaceview);
+    surfaceHolder = surfaceView.getHolder();
+    surfaceHolder.addCallback(this);
+    surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     disablePhoneSleep();
     Log.i(TAG, "onCreate");
   }
@@ -273,7 +282,7 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
     eulaAgreed = true;
     turnLightOn();
   }
-  
+
   @Override
   public boolean onKeyLongPress(int keyCode, KeyEvent event) {
     // When the search button is long pressed, quit
@@ -282,5 +291,25 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder holder, int I, int J, int K) {
+    Log.d(TAG, "surfaceChanged");
+  }
+
+  @Override
+  public void surfaceCreated(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceCreated");
+    try {
+      mCamera.setPreviewDisplay(holder);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder holder) {
+    Log.d(TAG, "surfaceDestroyed");
   }
 }
