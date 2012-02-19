@@ -1,5 +1,6 @@
 /*
- * Copyright 2011 Colin McDonough
+ * Copyright (C) 2011 Colin McDonough
+ * Copyright (C) 2012 Crossbones Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.colinmcdonough.android.torch;
+package com.crossbones.torch;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,7 +38,7 @@ import android.widget.Toast;
 /*
  * Torch is an LED flashlight.
  */
-public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolder.Callback {
+public class Torch extends Activity implements SurfaceHolder.Callback {
 
   private static final String TAG = Torch.class.getSimpleName();
 
@@ -50,7 +51,6 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolde
   private Camera mCamera;
   private boolean lightOn;
   private boolean previewOn;
-  private boolean eulaAgreed;
   private View button;
   private SurfaceView surfaceView;
   private SurfaceHolder surfaceHolder;
@@ -94,9 +94,6 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolde
   }
 
   private void turnLightOn() {
-    if (!eulaAgreed) {
-      return;
-    }
     if (mCamera == null) {
       Toast.makeText(this, "Camera not found", Toast.LENGTH_LONG);
       // Use the screen as a flashlight (next best thing)
@@ -207,9 +204,7 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolde
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    if (Eula.show(this)) {
-      eulaAgreed = true;
-    }
+
     setContentView(R.layout.main);
     button = findViewById(R.id.button);
     surfaceView = (SurfaceView) this.findViewById(R.id.surfaceview);
@@ -275,13 +270,6 @@ public class Torch extends Activity implements Eula.OnEulaAgreedTo, SurfaceHolde
     Log.i(TAG, "onDestroy");
   }
 
-  /** {@InheritDoc} **/
-  @Override
-  public void onEulaAgreedTo() {
-    Log.d(TAG, "onEulaAgreedTo");
-    eulaAgreed = true;
-    turnLightOn();
-  }
 
   @Override
   public boolean onKeyLongPress(int keyCode, KeyEvent event) {
